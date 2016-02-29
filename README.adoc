@@ -4,8 +4,18 @@ Script de configuration de debian 8
 == Installation, de debian 8
 Debian peut être télécharger ici : http://cdimage.debian.org/debian-cd/8.3.0/amd64/iso-cd/debian-8.3.0-amd64-netinst.iso +
 
-video::screencasts/debian8-vm-install.mp4[width=200,options="nocontrols,autoplay"]
-
+++++
+<video id="video" style="cursor: pointer;" >
+  <source src="pscreencasts/debian8-vm-install.mp4" />
+  Video not playing? <a href="screencasts/debian8-vm-install.mp4">Download file</a> instead.
+</video>
+<script type="text/javascript">
+  var video = document.getElementById('video');
+  video.addEventListener('click',function(){
+    video.play();
+  },false);
+</script>
+++++
 
 == Configuration
 La configuration se fait via les fichier `apps.properties` et `user.properties` +
