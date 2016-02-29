@@ -1,0 +1,27 @@
+= Configuration environnement de dévelopement sous Debian8
+Script de configuration de debian 8
+
+== Installation, de debian 8
+Debian peut être télécharger ici : http://cdimage.debian.org/debian-cd/8.3.0/amd64/iso-cd/debian-8.3.0-amd64-netinst.iso +
+
+video::screencasts/debian8-vm-install.mp4[width=200,options="nocontrols,autoplay"]
+
+
+== Configuration
+La configuration se fait via les fichier `apps.properties` et `user.properties` +
+C'est une relation clef = valeur , ou la valeur est soit le paquet apt , soit le lien de téléchargement
+
+[NOTE]
+====
+Si vous souhaitez installer sqldeveloper , vous devez forunir l'archive dans le dossier tools
+====
+== Exécution
+Python3 est requis. +
+Téléchargez le cript et l'extraire dans un dossier.
+
+[code,bash]
+----
+user@local ~$ su
+root@local ~$ cd PATH_TO_SCRIPT
+root@local ~$ python3 debian8-config-env.py
+----
