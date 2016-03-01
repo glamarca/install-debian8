@@ -240,16 +240,16 @@ def install_mozilla(config):
     if retval == 0 :
         if 'firefox' in config['MOZILLA'] :
             try :
-                subprocess.check_call('sudo apt-get remove iceweasel',shell=True)
-                subprocess.check_call('sudo apt-get install firefox',shell=True)
+                subprocess.check_call('sudo apt-get -y remove iceweasel',shell=True)
+                subprocess.check_call('sudo apt-get -y install firefox',shell=True)
             except :
                 print ('!! Erreur dans l\'installation de firefox')
                 ret.append('firefox')
                 print('')
         if 'thunderbird' in config['MOZILLA'] :
             try :
-                subprocess.check_call('sudo apt-get remove icedove',shell=True)
-                subprocess.check_call('sudo apt-get install thunderbird',shell=True)
+                subprocess.check_call('sudo apt-get -y remove icedove',shell=True)
+                subprocess.check_call('sudo apt-get -y install thunderbird',shell=True)
             except :
                 print ('!! Erreur dans l\'installation de thunderbird')
                 ret.append('thunderbird')
