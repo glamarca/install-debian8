@@ -614,7 +614,8 @@ def install_dev_tools(config,user_config,wget_cmd,install_cmd,chown_cmd) :
                 subprocess.check_call('sudo mkdir /opt/clojure',shell=True)
                 subprocess.check_call('sudo mkdir /opt/clojure/bin',shell=True)
                 subprocess.check_call('sudo mv /opt/lein /opt/clojure/bin/lein',shell=True)
-                subprocess.check_call('sudo ln -s /opt/clojure/bin/lein /usr/bin/lein',shell=True)
+                subprocess.check_call('sudo chmod a+x /opt/clojure/bin/lein',shell=True)
+                subprocess.check_call('ln -s /opt/clojure/bin/lein /usr/bin/lein',shell=True)
                 lein_chown_cmd=''.join([chown_cmd,' /opt/lein'])
                 subprocess.check_call(lein_chown_cmd,shell=True)
             except :
@@ -733,7 +734,7 @@ def main(argv):
         print('')
 
     if 'MOZILLA' in config.sections():
-        retval = install_mozilla()
+        retval = install_mozilla(config=config)
         if retval :
             failed_install.append('mozzilla')
         print('')
