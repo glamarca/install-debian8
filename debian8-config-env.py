@@ -192,20 +192,6 @@ def python_install(config,install_cmd) :
         exit(1)
 
 
-def clojure_install(config,install_cmd) :
-    clojure_apps = config['CLOJURE']
-    print('*** Installation des dépendances python3 ***')
-    print('\n'.join(clojure_apps.keys()))
-    print('')
-    try :
-        clojure_apps_cmd = ' '.join([install_cmd] + list(clojure_apps.values()))
-        subprocess.check_call(clojure_apps_cmd,shell=True)
-    except :
-        print ('!! Erreur dans l\'installation des dépendences clojure')
-        print('')
-        exit(1)
-
-
 def postgresql_install(config,install_cmd):
     postgres_apps = config['POSTGRES']
     print('*** Installation des dépendances postgres ***')
@@ -219,6 +205,56 @@ def postgresql_install(config,install_cmd):
         print('')
         exit(1)
 
+
+def install_media(config,install_cmd):
+    media_apps = config['MEDIA']
+    print('*** Installation des applications media ***')
+    print('\n'.join(media_apps.keys()))
+    print('')
+    try :
+        media_apps_cmd = ' '.join([install_cmd] + list(media_apps.values()))
+        subprocess.check_call(media_apps_cmd,shell=True)
+    except :
+        print ('!! Erreur dans l\'installation des application media')
+        print('')
+        return 1
+    return 0
+
+
+def install_mozilla(config):
+    retval = 0
+    ret = []
+    mozilla_apps = config['MOZILLA']
+    print('*** Installation des applications mozilla ***')
+    print('\n'.join(mozilla_apps.keys()))
+    print('')
+    try :
+        subprocess.check_call('echo \'deb http://downloads.sourceforge.net/project/ubuntuzilla/mozilla/apt all main\' > /etc/apt/sources.list.d/ubuntuzilla.list',shell=True)
+        subprocess.check_call('sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com C1289A29',shell=True)
+        subprocess.check_call('sudo apt-get update')
+    except :
+        retval = 1
+        print ('!! Erreur dans l\'installation des applications mozilla')
+        ret = ['firefox','thunderbird']
+        print('')
+    if retval == 0 :
+        if 'firefox' in config['MOZILLA'] :
+            try :
+                subprocess.check_call('sudo apt-get remove iceweasel',shell=True)
+                subprocess.check_call('sudo apt-get install firefox')
+            except :
+                print ('!! Erreur dans l\'installation de firefox')
+                ret.append('firefox')
+                print('')
+        if 'thunderbird' in config['MOZILLA'] :
+            try :
+                subprocess.check_call('sudo apt-get remove icedove',shell=True)
+                subprocess.check_call('sudo apt-get install thunderbird')
+            except :
+                print ('!! Erreur dans l\'installation de thunderbird')
+                ret.append('thunderbird')
+                print('')
+    return ret
 
 def install_dev_tools(config,user_config,wget_cmd,install_cmd,chown_cmd) :
 
@@ -557,9 +593,51 @@ def install_dev_tools(config,user_config,wget_cmd,install_cmd,chown_cmd) :
         print('')
     retval=0
 
-    print('')
-    return failled_install
+    if'lein' in config['DEV-TOOLS'] :
+        ##Télécharger lein
+        lein_link = config['DEV-TOOLS']['lein']
+        lein_wget_cmd=' '.join([wget_cmd,lein_link])
+        print('* Téléchargemlent lein')
+        try :
+            subprocess.check_call(lein_wget_cmd,shell=True)
+        except :
+            retval = 1
+            failled_install.append('lein')
+            print('')
+            print('!! Echec téléchargement lein')
+            print('')
+            pass
+        if retval == 0 :
+            ## Installation de lein
+            print('** Installation lein')
+            try :
+                subprocess.check_call('sudo mkdir /opt/clojure',shell=True)
+                subprocess.check_call('sudo mkdir /opt/clojure/bin',shell=True)
+                subprocess.check_call('sudo mv /opt/lein /opt/clojure/bin/lein',shell=True)
+                subprocess.check_call('sudo ln -s /opt/clojure/bin/lein /usr/bin/lein',shell=True)
+                lein_chown_cmd=''.join([chown_cmd,' /opt/lein'])
+                subprocess.check_call(lein_chown_cmd,shell=True)
+            except :
+                failled_install.append('lein')
+                print('')
+                print('!! Echec installation lein')
+                print('')
+                pass
+    retval = 0
 
+    if 'omyzsh' in config['DEV-TOOLS'] :
+        omyzsh_link =  config['DEV-TOOLS']['omyzsh']
+        print('** Installation oh-my-zsh')
+        try :
+            subprocess.check_call('sudo sh -c \"$(curl -fsSL )\"')
+        except :
+            failled_install.append('oh-my-zsh')
+            print('')
+            print('!! Echec Installation lein')
+            print('')
+    print('')
+
+    return failled_install
 
 def make_desktop_entry(user_config,app_short_name,app_name,exec_path,icon_path):
     retval = 0
@@ -598,6 +676,8 @@ def make_desktop_entry(user_config,app_short_name,app_name,exec_path,icon_path):
 
 
 def main(argv):
+    failed_install = None
+
     ### Initialisation de la lecture des fichier de propriétés
     config = configparser.ConfigParser()
     config.read(APPS_FILE)
@@ -638,14 +718,22 @@ def main(argv):
     if 'POSTGRES' in config.sections():
         postgresql_install(config=config,install_cmd=install_cmd)
         print('')
-    ### Installation Clojure
-    if 'CLOJURE' in config.sections():
-        clojure_install(config=config,install_cmd=install_cmd)
-        print('')
     ### Installation des outils de développement
-    failed_install = None
+
     if 'DEV-TOOLS' in config.sections() :
         failed_install = install_dev_tools(config=config,user_config=user_config,wget_cmd=wget_cmd,install_cmd=install_cmd,chown_cmd=chown_cmd)
+        print('')
+
+    if 'MEDIA' in config.sections():
+        retval = install_media(config=config,install_cmd=install_cmd)
+        if retval :
+            failed_install.append('media')
+        print('')
+
+    if 'MOZILLA' in config.sections():
+        retval = install_mozilla()
+        if retval :
+            failed_install.append('mozzilla')
         print('')
 
     if failed_install :
