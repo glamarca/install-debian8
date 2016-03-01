@@ -59,7 +59,7 @@ def base_tests(config,user_config):
     #     print('Supprimez sqldevelopeur des DEV-TOOLS à installer dans apps.properties ou complétez les données de connexion Oracle dans user.properties')
     #     exit(1)
     # Test si sqldeveloper doit être installé et si l'archive est présente dans le dossier tools
-    if config['DEV-TOOLS']['sql-developer'] and not os.path.isfile(os.path.join(TOOLS_FOLDER,config['DEV-TOOLS']['sql-developer'])):
+    if 'sql-developer' in config['DEV-TOOLS'] and not os.path.isfile(os.path.join(TOOLS_FOLDER,config['DEV-TOOLS']['sql-developer'])):
         print('')
         print('Vous avez spécifié l\'installation de sqldeveloper sans founir l\'archive nécéssaire')
         exit(0)
