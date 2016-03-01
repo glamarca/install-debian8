@@ -630,6 +630,8 @@ def install_dev_tools(config,user_config,wget_cmd,install_cmd,chown_cmd) :
         print('** Installation oh-my-zsh')
         try :
             subprocess.check_call('sudo sh -c \"$(curl -fsSL )\"')
+            subprocess.check_call('git clone https://github.com/powerline/fonts.git')
+            subprocess.check_call('sudo /bin/sh /opt/fonts/install.sh')
         except :
             failled_install.append('oh-my-zsh')
             print('')
