@@ -231,7 +231,7 @@ def install_mozilla(config):
     try :
         subprocess.check_call('echo \'deb http://downloads.sourceforge.net/project/ubuntuzilla/mozilla/apt all main\' > /etc/apt/sources.list.d/ubuntuzilla.list',shell=True)
         subprocess.check_call('sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com C1289A29',shell=True)
-        subprocess.check_call('sudo apt-get update')
+        subprocess.check_call('sudo apt-get update',shell=True)
     except :
         retval = 1
         print ('!! Erreur dans l\'installation des applications mozilla')
@@ -241,7 +241,7 @@ def install_mozilla(config):
         if 'firefox' in config['MOZILLA'] :
             try :
                 subprocess.check_call('sudo apt-get remove iceweasel',shell=True)
-                subprocess.check_call('sudo apt-get install firefox')
+                subprocess.check_call('sudo apt-get install firefox',shell=True)
             except :
                 print ('!! Erreur dans l\'installation de firefox')
                 ret.append('firefox')
@@ -249,7 +249,7 @@ def install_mozilla(config):
         if 'thunderbird' in config['MOZILLA'] :
             try :
                 subprocess.check_call('sudo apt-get remove icedove',shell=True)
-                subprocess.check_call('sudo apt-get install thunderbird')
+                subprocess.check_call('sudo apt-get install thunderbird',shell=True)
             except :
                 print ('!! Erreur dans l\'installation de thunderbird')
                 ret.append('thunderbird')
