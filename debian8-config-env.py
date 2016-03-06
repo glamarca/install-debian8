@@ -14,8 +14,8 @@ import pwd
 import re
 
 from functions import sudo_install, java_install, base_install, python_install, postgresql_install, install_dev_tools, \
-    install_media, install_mozilla
-from references import TOOLS_FOLDER, APPS_FILE, USER_FILE
+    install_media, install_mozilla, add_debian_repo, install_drivers, install_couchbase, add_packages_keys
+from references import TOOLS_FOLDER, APPS_FILE, USER_FILE, add_package_key
 
 
 def base_tests(config,user_config):
@@ -77,6 +77,10 @@ def main(argv):
     base_tests(config=config,user_config=user_config)
     #Installation sudo et ajout utilisateur au groupe sudo
     sudo_install(os_user=user_config['BASE']['os_user'])
+    #ajout Dépôt
+    add_debian_repo(config['DEBIAN_REPO'])
+    #AJoit clef publiques dépôts
+    add_packages_keys(config['PACKAGE_KEY'])
 
     print('*** Liste des section d\'installation ***')
     print(config.sections())
@@ -115,6 +119,14 @@ def main(argv):
         retval = install_mozilla(config['MOZILLA'])
         if retval :
             failed_install.append('mozzilla')
+
+    if 'COUCHBASE' in config.sections():
+        retval = install_couchbase(config['COUCHBASE'])
+        if retval :
+            failed_install.append('couchbase')
+
+    if 'DRIVERS' in config.sections():
+        retval = install_drivers(config['DRIVERS'])
 
     if failed_install :
         print('**** Installation terminée avec des échecs ****')

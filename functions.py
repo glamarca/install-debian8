@@ -1,11 +1,11 @@
-import fileinput
 import os
 import re
 import subprocess
 
-import sys
 
-from references import install_cmd, add_user_to_grp, PHASES, oracle_jdk_wget_cmd, add_repo_cmd, wget_app_cmd, chown_cmd, execute_as_user
+from references import install_cmd, add_user_to_grp, PHASES, oracle_jdk_wget_cmd, add_repo_cmd, wget_app_cmd, chown_cmd, execute_as_user, \
+    clear_list_repo_file, add_package_key, install_testing_cmd, install_backports_cmd, dpkg_install, TOOLS_FOLDER, \
+    add_pinning_cmd
 from utils import make_message
 
 
@@ -18,8 +18,8 @@ def sudo_install(os_user) :
         ## Ajout de l'utilisateur dans sudo
         print('** Ajout de l\'utilisateur dans groupe sudo')
         subprocess.check_call(add_user_to_grp.format('sudo',os_user),shell=True)
-    except :
-        make_message('error','sudo','install')
+    except Exception as e:
+        make_message('error','sudo','install',e)
         exit(1)
 
 def java_install(java_apps) :
@@ -51,8 +51,8 @@ def java_install(java_apps) :
         subprocess.check_call('sudo update-alternatives --install /usr/bin/java java /opt/jdk7/bin/java 1',shell=True)
         subprocess.check_call('sudo update-alternatives --install /usr/bin/javac javac /opt/jdk7/bin/javac 1',shell=True)
         subprocess.check_call('sudo update-alternatives --install /usr/bin/javaws javaws /opt/jdk7/bin/javaws 1',shell=True)
-    except :
-        make_message('error',PHASES['install']['fct'],'jdk7')
+    except Exception as e:
+        make_message('error',PHASES['install']['fct'],'jdk7',e)
         exit(1)
 
     #Téléchargement de la version de java8 spécifiée dans le fichier de propriétés
@@ -80,8 +80,8 @@ def java_install(java_apps) :
         subprocess.check_call('sudo update-alternatives --install /usr/bin/java java /opt/jdk8/bin/java 2',shell=True)
         subprocess.check_call('sudo update-alternatives --install /usr/bin/javac javac /opt/jdk8/bin/javac 2',shell=True)
         subprocess.check_call('sudo update-alternatives --install /usr/bin/javaws javaws /opt/jdk8/bin/javaws 2',shell=True)
-    except :
-        make_message('error',PHASES['install']['fct'],'jdk8')
+    except Exception as e:
+        make_message('error',PHASES['install']['fct'],'jdk8',e)
         exit(1)
     # version de java par default
     try :
@@ -90,8 +90,8 @@ def java_install(java_apps) :
         subprocess.check_call('sudo update-alternatives --set javac /opt/jdk7/bin/javac',shell=True)
         subprocess.check_call('sudo update-alternatives --set javaws /opt/jdk7/bin/javaws',shell=True)
         subprocess.check_call('java -version',shell=True)
-    except :
-        make_message('error',PHASES['install']['fct'],'java')
+    except Exception as e:
+        make_message('error',PHASES['install']['fct'],'java',e)
         exit(1)
 
 
@@ -101,8 +101,8 @@ def base_install(base_apps) :
     cmd = install_cmd.format(' '.join(list(base_apps.values())))
     try :
         subprocess.check_call(cmd,shell=True)
-    except :
-        make_message('error',PHASES['install']['fct'],'des dépendences de base')
+    except Exception as e:
+        make_message('error',PHASES['install']['fct'],'des dépendences de base',e)
         exit(1)
 
 
@@ -112,19 +112,55 @@ def python_install(python_apps) :
     try :
         python_apps_cmd = install_cmd.format(' '.join(list(python_apps.values())))
         subprocess.check_call(python_apps_cmd,shell=True)
-    except :
-        make_message('error',PHASES['install']['fct'],'des dépendences python')
+    except Exception as e:
+        make_message('error',PHASES['install']['fct'],'des dépendences python',e)
         exit(1)
 
 
 def add_debian_repo(repos) :
     make_message('section_title','DEBIAN_REPO')
     make_message('app_lists',repos.keys())
-    for key,value in repos.items() :
+    try :
+        subprocess.check_call(clear_list_repo_file,shell=True)
+        for key,value in repos.items() :
+            subprocess.check_call(add_repo_cmd.format(key,value),shell=True)
+        subprocess.check_call('touch /etc/apt/preferences.d/pinning',shell=True)
+        subprocess.check_call(add_pinning_cmd,shell=True)
+
+    except Exception as e:
+        make_message('error',PHASES['install']['title'],'DEBIAN_REPO',e)
+        exit(1)
+
+
+
+def add_packages_keys(keys_urls):
+    make_message('section_title','[PACKAGE-KEY]')
+    try :
+        for key , value in keys_urls.items() :
+            subprocess.check_call(add_package_key.format(value),shell=True)
+        subprocess.check_call('sudo apt-get update',shell=True)
+    except Exception as e:
+        make_message('error',PHASES['install']['title'],'PACKAGE-KEY',e)
+        exit(1)
+
+
+def install_drivers(drivers):
+    make_message('section_title','[DRIVERS]')
+    make_message('app_lists',drivers.keys())
+    ret = []
+    if 'intel-graphic' in drivers.keys():
         try :
-            subprocess.check_call(add_repo_cmd.format(repo_name=key,repo_url=value),shell=True)
-        except :
-            make_message('error',PHASES['install']['title'],'DEBIAN_REPO')
+            subprocess.check_call(install_testing_cmd.format(drivers['intel-graphic']),shell=True)
+        except Exception as e:
+            make_message('error',PHASES['install']['fct'],'intel-graphic',e)
+            ret.append('intel-graphic')
+    if 'intel-wifi' in drivers.keys() :
+        try :
+            subprocess.check_call(install_backports_cmd.format(drivers['intel-wifi']),shell=True)
+        except Exception as e:
+            make_message('error',PHASES['install']['fct'],'intel-wifi',e)
+            ret.append('intel-wifi')
+    return ret
 
 
 def postgresql_install(postgres_apps):
@@ -132,8 +168,8 @@ def postgresql_install(postgres_apps):
     make_message('app_lists',postgres_apps.keys())
     try :
         subprocess.check_call(install_cmd.format(' '.join(list(postgres_apps.values()))),shell=True)
-    except :
-        make_message('error',PHASES['install']['title'],'dépendences postgres')
+    except Exception as e:
+        make_message('error',PHASES['install']['title'],'dépendences postgres',e)
 
 
 def install_media(media_apps):
@@ -141,8 +177,8 @@ def install_media(media_apps):
     make_message('app_lists',media_apps.keys())
     try :
         subprocess.check_call(install_cmd.format(' '.join(list(media_apps.values()))),shell=True)
-    except :
-        make_message('error',PHASES['install']['title'],'dépendences média')
+    except Exception as e:
+        make_message('error',PHASES['install']['title'],'dépendences média',e)
         return 1
     return 0
 
@@ -156,26 +192,64 @@ def install_mozilla(mozilla_apps):
         subprocess.check_call('echo \'deb http://downloads.sourceforge.net/project/ubuntuzilla/mozilla/apt all main\' > /etc/apt/sources.list.d/ubuntuzilla.list',shell=True)
         subprocess.check_call('sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com C1289A29',shell=True)
         subprocess.check_call('sudo apt-get update',shell=True)
-    except :
+    except Exception as e:
         retval = 1
-        make_message('error',PHASES['install']['title'],'applications mozilla')
+        make_message('error',PHASES['install']['title'],'applications mozilla',e)
         ret = ['firefox','thunderbird']
     if retval == 0 :
         if 'firefox' in mozilla_apps.keys() :
             try :
                 subprocess.check_call('sudo apt-get -y remove iceweasel',shell=True)
                 subprocess.check_call('sudo apt-get -y install firefox',shell=True)
-            except :
-                make_message('error',PHASES['install']['title'],'firefox')
+            except Exception as e:
+                make_message('error',PHASES['install']['title'],'firefox',e)
                 ret.append('firefox')
         if 'thunderbird' in mozilla_apps.keys() :
             try :
                 subprocess.check_call('sudo apt-get -y remove icedove',shell=True)
                 subprocess.check_call('sudo apt-get -y install thunderbird',shell=True)
-            except :
-                make_message('error',PHASES['install']['title'],'thunderbird')
+            except Exception as e:
+                make_message('error',PHASES['install']['title'],'thunderbird',e)
                 ret.append('thunderbird')
     return ret
+
+def install_couchbase(couchbase_apps):
+    retval = 0
+    ret = []
+    make_message('section_title','COUCHBASE')
+    os.chdir('/opt')
+
+    cb_link = couchbase_apps['couchbase']
+    match = re.search('.+\/(couchbase.*\.deb$)',cb_link)
+    cb_version = match.group(1)
+    if not cb_version :
+        print ('!! Erreur dans le chemin de téléchargement de couchbase')
+        print('')
+        ret.append(cb_version)
+        retval = 1
+        if retval == 0 :
+            #Telechargement couchbase
+            make_message('phase_title',PHASES['download']['title'],'couchbase')
+            try :
+                subprocess.check_call(wget_app_cmd.format(cb_link),shell=True)
+            except Exception as e:
+                retval = 1
+                ret.append(cb_version)
+                make_message('error',PHASES['download']['fct'],'couchbase',e)
+                pass
+        # TO-DO creation de l'entrée dans le menu
+        if retval == 0 :
+            #Instalation atom
+            try :
+                make_message('phase_title',PHASES['install']['title'],'couchbase')
+                subprocess.check_call(dpkg_install.format(''.join(['/opt/',cb_version])),shell=True)
+                rm_atom_cmd = ''.join(['sudo rm -f ',cb_version])
+                subprocess.check_call(rm_atom_cmd,shell=True)
+            except Exception as e:
+                ret.append(cb_version)
+                make_message('error',PHASES['install']['fct'],'couchbase',e)
+                pass
+    retval = 0
 
 def install_dev_tools(dev_apps,os_user) :
     retval = 0
@@ -188,7 +262,7 @@ def install_dev_tools(dev_apps,os_user) :
         print(''.join(['** Atom ',]))
         ## Installation atom
         atom_link = dev_apps['atom']
-        match = re.search('.+\/(.+\.deb$)',atom_link)
+        match = re.search('.+\/(atom.*\.deb$)',atom_link)
         atom_version = match.group(1)
         if not atom_version :
             print ('!! Erreur dans le chemin de téléchargement de atom')
@@ -200,23 +274,22 @@ def install_dev_tools(dev_apps,os_user) :
             make_message('phase_title',PHASES['download']['title'],'atom')
             try :
                 subprocess.check_call(wget_app_cmd.format(atom_link),shell=True)
-            except :
+            except Exception as e:
                 retval = 1
                 failled_install.append(atom_version)
-                make_message('error',PHASES['download']['fct'],'atom')
+                make_message('error',PHASES['download']['fct'],'atom',e)
                 pass
         # TO-DO creation de l'entrée dans le menu
         if retval == 0 :
             #Instalation atom
             try :
                 make_message('phase_title',PHASES['install']['title'],'atom')
-                atom_install_cmd = ''.join(['sudo dpkg -i /opt/',atom_version])
-                subprocess.check_call(atom_install_cmd,shell=True)
+                subprocess.check_call(dpkg_install.format(''.join(['/opt/',atom_version])),shell=True)
                 rm_atom_cmd = ''.join(['sudo rm -f ',atom_version])
                 subprocess.check_call(rm_atom_cmd,shell=True)
-            except :
+            except Exception as e:
                 failled_install.append(atom_version)
-                make_message('error',PHASES['install']['fct'],'atom')
+                make_message('error',PHASES['install']['fct'],'atom',e)
                 pass
     retval = 0
 
@@ -234,10 +307,10 @@ def install_dev_tools(dev_apps,os_user) :
             make_message('phase_title',PHASES['download']['title'],'netbeans')
             try :
                 subprocess.check_call(wget_app_cmd.format(netbeans_link),shell=True)
-            except :
+            except Exception as e:
                 retval = 1
                 failled_install.append(netbeans_version)
-                make_message('error',PHASES['download']['fct'],'netbeans')
+                make_message('error',PHASES['download']['fct'],'netbeans',e)
                 pass
             # TO-DO creation de l'entrée dans le menu
             if retval == 0 :
@@ -246,15 +319,15 @@ def install_dev_tools(dev_apps,os_user) :
                 try :
                     subprocess.check_call('sudo mkdir /opt/netbeans',shell=True)
                     netbeans_path = ''.join(['/opt/',netbeans_version])
-                    netbeans_args = ' --silent -J-Dnb-base.installation.location=/opt/netbeans -J-Djdk.installation.location=/opt/jdk7 J-Dnb-base.jdk.location=/opt/jdk7'
+                    netbeans_args = ' --silent --javahome /opt/jdk7 -J-Dnb-base.installation.location=/opt/netbeans'
                     netbean_install_cmd=''.join(['sudo /bin/sh ',netbeans_path,netbeans_args])
                     subprocess.check_call(netbean_install_cmd,shell=True)
-                    subprocess.check_call(chown_cmd.format(os_user,'/opt/netbeans'),shell=True)
+                    subprocess.check_call(chown_cmd.format(os_user,os_user,'/opt/netbeans'),shell=True)
                     rm_netbeans_cmd = ''.join(['sudo rm -f ',netbeans_path])
                     subprocess.check_call(rm_netbeans_cmd,shell=True)
-                except :
+                except Exception as e:
                     failled_install.append(netbeans_version)
-                    make_message('error',PHASES['install']['fct'],'netbeans')
+                    make_message('error',PHASES['install']['fct'],'netbeans',e)
                     pass
     retval = 0
 
@@ -273,10 +346,10 @@ def install_dev_tools(dev_apps,os_user) :
             make_message('phase_title',PHASES['download']['title'],'pycharm')
             try :
                 subprocess.check_call(wget_app_cmd.format(pycharm_link),shell=True)
-            except :
+            except Exception as e:
                 retval = 1
                 failled_install.append(pycharm_version)
-                make_message('error',PHASES['download']['fct'],'pycharm')
+                make_message('error',PHASES['download']['fct'],'pycharm',e)
                 pass
             if retval == 0 :
                 ## Installation de pycharm
@@ -286,13 +359,12 @@ def install_dev_tools(dev_apps,os_user) :
                     pycharm_path=''.join(['/opt/',pycharm_version])
                     tar_cmd = ''.join(['sudo tar -xzf ',pycharm_path,' -C /opt/pycharm --strip-components 1'])
                     subprocess.check_call(tar_cmd,shell=True)
-                    pycharm_chown_cmd=''.join([chown_cmd,' /opt/pycharm'])
-                    subprocess.check_call(pycharm_chown_cmd,shell=True)
+                    subprocess.check_call(chown_cmd.format(os_user,os_user,'/opt/pycharm'),shell=True)
                     rm_pycharm_cmd = ''.join(['sudo rm -f ',pycharm_path])
                     subprocess.check_call(rm_pycharm_cmd,shell=True)
-                except :
+                except Exception as e:
                     failled_install.append(pycharm_version)
-                    make_message('error',PHASES['install']['fct'],'pycharm')
+                    make_message('error',PHASES['install']['fct'],'pycharm',e)
                     pass
                 make_desktop_entry(os_user=os_user,
                                    app_short_name='pycharm',
@@ -302,59 +374,54 @@ def install_dev_tools(dev_apps,os_user) :
         print('')
     retval=0
 
-    # if 'sql-developer' in dev_apps.keys() :
-    #     ## Telechargement de sqldevelopper
-    #     # sqldeveloper_link = config['DEV-TOOLS']['sql-developer']
-    #     # match = re.search('.+\/(sqldeveloper.+\.zip$)',sqldeveloper_link)
-    #     # sqldeveloper_version = match.group(1)
-    #     sqldeveloper_version = dev_apps['sql-developer']
-    #     if not sqldeveloper_version :
-    #         print('')
-    #         print ('!! Erreur dans le chemin de téléchargement de sqldeveloper')
-    #         print('')
-    #         failled_install.append(sqldeveloper_version)
-    #         retval = 1
-    #     if retval == 0 :
-    #         # oracle_sql_wget_cmd = ''.join([wget_cmd,' --header "Cookie: oraclelicense=accept-securebackup-cookie" --http-user=',
-    #         #                                user_config['ORACLE']['oracle_user'],
-    #         #                                ' --http-password=',
-    #         #                                user_config['ORACLE']['oracle_password']])
-    #         # sqldeveloper_wget_cmd=' '.join([oracle_sql_wget_cmd,sqldeveloper_link])
-    #         # print(''.join(['* Téléchargement ',sqldeveloper_version]))
-    #         sql_dev = os.path.join(TOOLS_FOLDER,sqldeveloper_version)
-    #         cp_cmd = ''.join(['sudo cp ',sql_dev,' ./'])
-    #         try :
-    #             subprocess.check_call(cp_cmd,shell=True)
-    #         except :
-    #             retval = 1
-    #             failled_install.append(sqldeveloper_version)
-    #             make_message('error',PHASES['download']['fct'],'sql-developer')
-    #             pass
-    #         if retval == 0 :
-    #             ## Installation sql-developer
-    #             make_message('phase_title',PHASES['install']['title'],sqldeveloper_version)
-    #             try :
-    #                 sqldev_path=''.join(['/opt/',sqldeveloper_version])
-    #                 unzip_cmd = ''.join(['sudo unzip -q ',sqldev_path])
-    #                 subprocess.check_call(unzip_cmd,shell=True)
-    #                 sqldev_chown_cmd=''.join([chown_cmd,' /opt/sqldeveloper'])
-    #                 subprocess.check_call(sqldev_chown_cmd,shell=True)
-    #                 rm_sqldev_cmd = ''.join(['sudo rm -f ',sqldev_path])
-    #                 subprocess.check_call(rm_sqldev_cmd,shell=True)
-    #                 #configuration du jdk
-    #                 for line in fileinput.input('/opt/sqldeveloper/sqldeveloper/bin/sqldeveloper.conf',inplace=1) :
-    #                     match = re.search('(SetJavaHome.+)',line)
-    #                     if match.group(1) :
-    #                         line.replace(match.group(1),'SetJavaHome /opt/jdk8')
-    #                     sys.stdout.write(line)
-    #             except :
-    #                 failled_install.append(sqldeveloper_version)
-    #                 make_message('error',PHASES['install']['fct'],'sql-developer')
-    #                 pass
-    #             make_desktop_entry(user_config,app_short_name='sqldeveloper',
-    #                                app_name='SqlDeveloper',
-    #                                exec_path='/bin/sh /opt/sqldeveloper/sqldeveloper.sh',
-    #                                icon_path='/opt/sqldeveloper/sqldeveloper/bin/splash.png')
+    if 'sql-developer' in dev_apps.keys() :
+        ## Telechargement de sqldevelopper
+        # sqldeveloper_link = config['DEV-TOOLS']['sql-developer']
+        # match = re.search('.+\/(sqldeveloper.+\.zip$)',sqldeveloper_link)
+        # sqldeveloper_version = match.group(1)
+        sqldeveloper_version = dev_apps['sql-developer']
+        if not sqldeveloper_version :
+            print('')
+            print ('!! Erreur dans le chemin de téléchargement de sqldeveloper')
+            print('')
+            failled_install.append(sqldeveloper_version)
+            retval = 1
+        if retval == 0 :
+            # oracle_sql_wget_cmd = ''.join([wget_cmd,' --header "Cookie: oraclelicense=accept-securebackup-cookie" --http-user=',
+            #                                user_config['ORACLE']['oracle_user'],
+            #                                ' --http-password=',
+            #                                user_config['ORACLE']['oracle_password']])
+            # sqldeveloper_wget_cmd=' '.join([oracle_sql_wget_cmd,sqldeveloper_link])
+            # print(''.join(['* Téléchargement ',sqldeveloper_version]))
+            sql_dev = os.path.join(TOOLS_FOLDER,sqldeveloper_version)
+            cp_cmd = ''.join(['sudo cp ',sql_dev,' ./'])
+            try :
+                subprocess.check_call(cp_cmd,shell=True)
+            except Exception as e:
+                retval = 1
+                failled_install.append(sqldeveloper_version)
+                make_message('error',PHASES['download']['fct'],'sql-developer',e)
+                pass
+            if retval == 0 :
+                ## Installation sql-developer
+                make_message('phase_title',PHASES['install']['title'],sqldeveloper_version)
+                try :
+                    sqldev_path=''.join(['/opt/',sqldeveloper_version])
+                    unzip_cmd = ''.join(['sudo unzip -q ',sqldev_path])
+                    subprocess.check_call(unzip_cmd,shell=True)
+                    subprocess.check_call(chown_cmd.format(os_user,os_user,'/opt/sqldeveloper'))
+                    rm_sqldev_cmd = ''.join(['sudo rm -f ',sqldev_path])
+                    subprocess.check_call(rm_sqldev_cmd,shell=True)
+                    #configuration du jdk
+                    subprocess.check_call('echo \'SetJavaHome /opt/jdk8\n\' >> /opt/sqldeveloper/sqldeveloper/bin/sqldeveloper.conf')
+                except Exception as e:
+                    failled_install.append(sqldeveloper_version)
+                    make_message('error',PHASES['install']['fct'],'sql-developer',e)
+                    pass
+                make_desktop_entry(os_user,app_short_name='sqldeveloper',
+                                   app_name='SqlDeveloper',
+                                   exec_path='/opt/sqldeveloper/sqldeveloper.sh',
+                                   icon_path='/opt/sqldeveloper/sqldeveloper/bin/splash.png')
     retval = 0
     if 'visual-paradigm' in dev_apps.keys() :
         ## Telechargement de vp
@@ -371,10 +438,10 @@ def install_dev_tools(dev_apps,os_user) :
             make_message('phase_title',PHASES['download']['title'],vp_version)
             try :
                 subprocess.check_call(wget_app_cmd.format(vp_link),shell=True)
-            except :
+            except Exception as e:
                 retval = 1
                 failled_install.append(vp_version)
-                make_message('error',PHASES['download']['fct'],'visual-paradigm')
+                make_message('error',PHASES['download']['fct'],'visual-paradigm',e)
                 pass
             if retval == 0 :
                 try :
@@ -385,13 +452,12 @@ def install_dev_tools(dev_apps,os_user) :
                     vp_args = ' -q -dir /opt/visual-paradigm'
                     vp_install_cmd=''.join(['sudo /bin/sh ',vp_path,vp_args])
                     subprocess.check_call(vp_install_cmd,shell=True)
-                    vp_chown_cmd=''.join([chown_cmd,' /opt/visual-paradigm'])
-                    subprocess.check_call(vp_chown_cmd,shell=True)
+                    subprocess.check_call(chown_cmd.format(os_user,os_user,'/opt/visual-paradigm'))
                     rm_vp_cmd = ''.join(['sudo rm -f ',vp_path])
                     subprocess.check_call(rm_vp_cmd,shell=True)
-                except :
+                except Exception as e:
                     failled_install.append(vp_version)
-                    make_message('error',PHASES['install']['fct'],'visual-paradigm')
+                    make_message('error',PHASES['install']['fct'],'visual-paradigm',e)
                     pass
 
     if 'intellij' in dev_apps.keys() :
@@ -409,10 +475,10 @@ def install_dev_tools(dev_apps,os_user) :
             make_message('phase_title',PHASES['download']['title'],intellij_version)
             try :
                 subprocess.check_call(wget_app_cmd.format(intellij_link),shell=True)
-            except :
+            except Exception as e:
                 retval = 1
                 failled_install.append(intellij_version)
-                make_message('error',PHASES['download']['fct'],'intellij')
+                make_message('error',PHASES['download']['fct'],'intellij',e)
                 pass
             if retval == 0 :
                 ## Installation de intellij
@@ -422,13 +488,12 @@ def install_dev_tools(dev_apps,os_user) :
                     intellij_path=''.join(['/opt/',intellij_version])
                     tar_cmd = ''.join(['sudo tar -xzf ',intellij_path,' -C /opt/intellij --strip-components 1'])
                     subprocess.check_call(tar_cmd,shell=True)
-                    intellij_chown_cmd=''.join([chown_cmd,' /opt/intellij'])
-                    subprocess.check_call(intellij_chown_cmd,shell=True)
+                    subprocess.check_call(chown_cmd.format(os_user,os_user,'/opt/intellij'))
                     rm_intellij_cmd = ''.join(['sudo rm -f ',intellij_path])
                     subprocess.check_call(rm_intellij_cmd,shell=True)
-                except :
+                except Exception as e:
                     failled_install.append(intellij_version)
-                    make_message('error',PHASES['install']['fct'],'intellij')
+                    make_message('error',PHASES['install']['fct'],'intellij',e)
                     pass
                 make_desktop_entry(os_user=os_user,
                                    app_short_name='intellij',
@@ -450,10 +515,10 @@ def install_dev_tools(dev_apps,os_user) :
             make_message('phase_title',PHASES['download']['title'],android_studio_link)
             try :
                 subprocess.check_call(wget_app_cmd.format(android_studio_link),shell=True)
-            except :
+            except Exception as e:
                 retval = 1
                 failled_install.append(android_studio_version)
-                make_message('error',PHASES['download']['fct'],'android-studio')
+                make_message('error',PHASES['download']['fct'],'android-studio',e)
                 pass
             if retval == 0 :
                 ## Installation de android_studio
@@ -461,13 +526,12 @@ def install_dev_tools(dev_apps,os_user) :
                 try :
                     unzip_cmd = ''.join(['sudo unzip -q /opt/',android_studio_version])
                     subprocess.check_call(unzip_cmd,shell=True)
-                    android_studio_chown_cmd=''.join([chown_cmd,' /opt/android-studio'])
-                    subprocess.check_call(android_studio_chown_cmd,shell=True)
+                    subprocess.check_call(chown_cmd.format(os_user,os_user,'/opt/android-studio'))
                     rm_android_studio_cmd = ''.join(['sudo rm -f /opt/',android_studio_version])
                     subprocess.check_call(rm_android_studio_cmd,shell=True)
-                except :
+                except Exception as e:
                     failled_install.append(android_studio_version)
-                    make_message('error',PHASES['install']['fct'],'android-studio')
+                    make_message('error',PHASES['install']['fct'],'android-studio',e)
                     pass
                 make_desktop_entry(os_user=os_user,
                                    app_short_name='android-studio',
@@ -483,10 +547,10 @@ def install_dev_tools(dev_apps,os_user) :
         make_message('phase_title',PHASES['download']['title'],lein_link)
         try :
             subprocess.check_call(wget_app_cmd.format(lein_link),shell=True)
-        except :
+        except Exception as e:
             retval = 1
             failled_install.append('lein')
-            make_message('error',PHASES['download']['fct'],'lein')
+            make_message('error',PHASES['download']['fct'],'lein',e)
             pass
         if retval == 0 :
             ## Installation de lein
@@ -497,11 +561,11 @@ def install_dev_tools(dev_apps,os_user) :
                 subprocess.check_call('sudo mv /opt/lein /opt/clojure/bin/lein',shell=True)
                 subprocess.check_call('sudo chmod a+x /opt/clojure/bin/lein',shell=True)
                 subprocess.check_call('ln -s /opt/clojure/bin/lein /usr/bin/lein',shell=True)
-                lein_chown_cmd=''.join([chown_cmd,' /opt/lein'])
-                subprocess.check_call(lein_chown_cmd,shell=True)
-            except :
+                subprocess.check_call(chown_cmd.format(os_user,os_user,'q'
+                                                                       '/opt/lein'))
+            except Exception as e:
                 failled_install.append('lein')
-                make_message('error',PHASES['install']['fct'],'android-studio')
+                make_message('error',PHASES['install']['fct'],'android-studio',e)
                 pass
     retval = 0
 
@@ -512,9 +576,9 @@ def install_dev_tools(dev_apps,os_user) :
             subprocess.check_call(execute_as_user.format(app=''.join(['/bin/sh -c \"$(curl -fsSL )',omyzsh_link,' \"']),user=os_user))
             subprocess.check_call('git clone https://github.com/powerline/fonts.git')
             subprocess.check_call('sudo /bin/sh /opt/fonts/install.sh')
-        except :
+        except Exception as e:
             failled_install.append('oh-my-zsh')
-            make_message('error',PHASES['install']['fct'],'omyzsh')
+            make_message('error',PHASES['install']['fct'],'omyzsh',e)
 
 
     return failled_install
@@ -526,7 +590,7 @@ def make_desktop_entry(os_user,app_short_name,app_name,exec_path,icon_path):
         mkdir_cmd = ''.join(['sudo mkdir ',application_desktop_dir])
         try :
             subprocess.check_call(mkdir_cmd,shell=True)
-        except :
+        except Exception as e:
             print('')
             print(''.join(['!! Erreur lors de la création du dektop_enytry ',app_name]))
             print('')
@@ -547,7 +611,7 @@ def make_desktop_entry(os_user,app_short_name,app_name,exec_path,icon_path):
             """.format(name=app_name,exe=exec_path,icon=icon_path)
             with open(app_desktop_path,"a+") as f:
                 f.write(desktop_content)
-        except :
+        except Exception as e:
             print('')
             print(''.join(['!! Erreur lors de la création du dektop_enytry ',app_name]))
             print('')

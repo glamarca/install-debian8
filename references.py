@@ -9,7 +9,21 @@ execute_as_user = 'su -c {} -s /bin/sh {}'
 add_user_to_grp = 'sudo usermod -a -G {} {}'
 oracle_jdk_wget_cmd = ''.join([wget_cmd,' --header "Cookie: oraclelicense=accept-securebackup-cookie" '])
 add_repo_cmd='echo \'\n\n###debian {}\n{}\n\' >> /etc/apt/sources.list'
+clear_list_repo_file=' > /etc/apt/sources.list'
+add_package_key='wget -q -O - {} | sudo apt-key add -'
+install_testing_cmd='sudo /usr/bin/apt-get install -y -t testing {}'
+install_backports_cmd='sudo /usr/bin/apt-get install -y -t jessie-backports {}'
+dpkg_install='sudo dpkg -i {}'
+picking_prefs="""
+Package: *
+Pin: release a=jessie-backports
+Pin-Priority: -10
 
+Package: *
+Pin: release a=testing
+Pin-Priority: -10
+"""
+add_pinning_cmd='echo \'{}\' >> /etc/apt/preferences.d/pinning'.format(picking_prefs)
 
 APPS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "apps.properties")
 
@@ -35,7 +49,7 @@ PHASES = {
 
 
 MESSAGES = {
-    'error' : '\n!!!! Erreur pendant {} de {} !!!!\n',
+    'error' : '\n!!!! Erreur pendant {} de {} !!!!\nErreur = {}',
     'phase_title' : '\n*** {} de {} ***\n',
     'section_title' : '\n\n\n**** [ {} ] ****\n',
     'app_lists' : '-- {} --\n',
