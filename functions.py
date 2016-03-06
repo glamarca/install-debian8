@@ -35,11 +35,11 @@ def java_install(java_apps) :
         print('')
         exit(1)
     try:
-        make_message('phase_title',PHASES['download']['title'],'jdk 7 et 8')
+        make_message('phase_title',PHASES['download']['title'],java7_version)
         java7_wget_cmd = ''.join([oracle_jdk_wget_cmd,java7_link])
         subprocess.check_call(java7_wget_cmd,shell=True)
         # Decompression dans /opt
-        make_message('phase_title',PHASES['download']['title'],'jdk7 dans /opt/jdk7')
+        make_message('phase_title',PHASES['install']['title'],'jdk7 dans /opt/jdk7')
         subprocess.check_call('sudo mkdir jdk7',shell=True)
         tar_cmd = ''.join(['sudo tar -xzf ', java7_version, ' -C jdk7 --strip-components 1'])
         subprocess.check_call(tar_cmd,shell=True)
@@ -64,11 +64,11 @@ def java_install(java_apps) :
         print('')
         exit(1)
     try :
-        print(''.join(['** Téléchargement de ',java8_version]))
+        make_message('phase_title',PHASES['download']['title'],java8_version)
         java8_wget_cmd = ''.join([oracle_jdk_wget_cmd,java8_link])
         subprocess.check_call(java8_wget_cmd,shell=True)
         # Decompression dans /opt
-        make_message('phase_title',PHASES['download']['title'],'jdk8 dans /opt/jdk8')
+        make_message('phase_title',PHASES['install']['title'],'jdk8 dans /opt/jdk8')
         subprocess.check_call('sudo mkdir jdk8',shell=True)
         tar_cmd = ''.join(['tar -xzf ',java8_version,' -C jdk8 --strip-components 1'])
         subprocess.check_call(tar_cmd,shell=True)
@@ -134,9 +134,9 @@ def add_debian_repo(repos) :
 
 
 def add_packages_keys(keys_urls):
-    make_message('section_title','[PACKAGE-KEY]')
+    make_message('section_title','PACKAGE-KEY')
     try :
-        for key , value in keys_urls.items() :
+        for key, value in keys_urls.items() :
             subprocess.check_call(add_package_key.format(value),shell=True)
         subprocess.check_call('sudo apt-get update',shell=True)
     except Exception as e:
@@ -145,7 +145,7 @@ def add_packages_keys(keys_urls):
 
 
 def install_drivers(drivers):
-    make_message('section_title','[DRIVERS]')
+    make_message('section_title','DRIVERS')
     make_message('app_lists',drivers.keys())
     ret = []
     if 'intel-graphic' in drivers.keys():
@@ -409,11 +409,11 @@ def install_dev_tools(dev_apps,os_user) :
                     sqldev_path=''.join(['/opt/',sqldeveloper_version])
                     unzip_cmd = ''.join(['sudo unzip -q ',sqldev_path])
                     subprocess.check_call(unzip_cmd,shell=True)
-                    subprocess.check_call(chown_cmd.format(os_user,os_user,'/opt/sqldeveloper'))
+                    subprocess.check_call(chown_cmd.format(os_user,os_user,'/opt/sqldeveloper'),shell=True)
                     rm_sqldev_cmd = ''.join(['sudo rm -f ',sqldev_path])
                     subprocess.check_call(rm_sqldev_cmd,shell=True)
                     #configuration du jdk
-                    subprocess.check_call('echo \'SetJavaHome /opt/jdk8\n\' >> /opt/sqldeveloper/sqldeveloper/bin/sqldeveloper.conf')
+                    subprocess.check_call('echo \'SetJavaHome /opt/jdk8\n\' >> /opt/sqldeveloper/sqldeveloper/bin/sqldeveloper.conf',shell=True)
                 except Exception as e:
                     failled_install.append(sqldeveloper_version)
                     make_message('error',PHASES['install']['fct'],'sql-developer',e)
@@ -452,7 +452,7 @@ def install_dev_tools(dev_apps,os_user) :
                     vp_args = ' -q -dir /opt/visual-paradigm'
                     vp_install_cmd=''.join(['sudo /bin/sh ',vp_path,vp_args])
                     subprocess.check_call(vp_install_cmd,shell=True)
-                    subprocess.check_call(chown_cmd.format(os_user,os_user,'/opt/visual-paradigm'))
+                    subprocess.check_call(chown_cmd.format(os_user,os_user,'/opt/visual-paradigm'),shell=True)
                     rm_vp_cmd = ''.join(['sudo rm -f ',vp_path])
                     subprocess.check_call(rm_vp_cmd,shell=True)
                 except Exception as e:
@@ -488,7 +488,7 @@ def install_dev_tools(dev_apps,os_user) :
                     intellij_path=''.join(['/opt/',intellij_version])
                     tar_cmd = ''.join(['sudo tar -xzf ',intellij_path,' -C /opt/intellij --strip-components 1'])
                     subprocess.check_call(tar_cmd,shell=True)
-                    subprocess.check_call(chown_cmd.format(os_user,os_user,'/opt/intellij'))
+                    subprocess.check_call(chown_cmd.format(os_user,os_user,'/opt/intellij'),shell=True)
                     rm_intellij_cmd = ''.join(['sudo rm -f ',intellij_path])
                     subprocess.check_call(rm_intellij_cmd,shell=True)
                 except Exception as e:
@@ -526,7 +526,7 @@ def install_dev_tools(dev_apps,os_user) :
                 try :
                     unzip_cmd = ''.join(['sudo unzip -q /opt/',android_studio_version])
                     subprocess.check_call(unzip_cmd,shell=True)
-                    subprocess.check_call(chown_cmd.format(os_user,os_user,'/opt/android-studio'))
+                    subprocess.check_call(chown_cmd.format(os_user,os_user,'/opt/android-studio'),shell=True)
                     rm_android_studio_cmd = ''.join(['sudo rm -f /opt/',android_studio_version])
                     subprocess.check_call(rm_android_studio_cmd,shell=True)
                 except Exception as e:
@@ -561,8 +561,7 @@ def install_dev_tools(dev_apps,os_user) :
                 subprocess.check_call('sudo mv /opt/lein /opt/clojure/bin/lein',shell=True)
                 subprocess.check_call('sudo chmod a+x /opt/clojure/bin/lein',shell=True)
                 subprocess.check_call('ln -s /opt/clojure/bin/lein /usr/bin/lein',shell=True)
-                subprocess.check_call(chown_cmd.format(os_user,os_user,'q'
-                                                                       '/opt/lein'))
+                subprocess.check_call(chown_cmd.format(os_user,os_user,'/opt/clojure/bin/lein'),shell=True)
             except Exception as e:
                 failled_install.append('lein')
                 make_message('error',PHASES['install']['fct'],'android-studio',e)

@@ -25,12 +25,6 @@ Pin-Priority: -10
 """
 add_pinning_cmd='echo \'{}\' >> /etc/apt/preferences.d/pinning'.format(picking_prefs)
 
-APPS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "apps.properties")
-
-# Fichier de configuration de l'utilisateur
-USER_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "user.properties")
-
-
 # Dossier contenant les outils à installer
 # Par défaut , dossier tools à la racine
 TOOLS_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tools")

@@ -2,20 +2,22 @@
 import fileinput
 import os,sys,subprocess,configparser
 
-# Script d'installation de l'environnement de devéloppement OSIS - SIPS
+# Script d'installation d'un environnement de développement
 #
 # OS : Debian 8
-# Languages de développement : Python3, Java, Clojure
-# Outils : Atom, Netbeans, Pycharm, SqlDevelopper, Visual Paradigm
+# Languages de développement : Python3, Java7 et 8, Clojure
+# DB : Postgres,Couchbase
+# Outils : Atom, Netbeans, Pycharm, IntelliJ, Android-studio, SqlDevelopper, Visual Paradigm
 #
 
 # Fichier contenant les applications et dépendances à installer
 import pwd
 import re
 
+from config import APPS, USER
 from functions import sudo_install, java_install, base_install, python_install, postgresql_install, install_dev_tools, \
     install_media, install_mozilla, add_debian_repo, install_drivers, install_couchbase, add_packages_keys
-from references import TOOLS_FOLDER, APPS_FILE, USER_FILE, add_package_key
+from references import TOOLS_FOLDER
 
 
 def base_tests(config,user_config):
@@ -67,10 +69,8 @@ def main(argv):
     failed_install = None
 
     ### Initialisation de la lecture des fichier de propriétés
-    config = configparser.ConfigParser()
-    config.read(APPS_FILE)
-    user_config = configparser.ConfigParser()
-    user_config.read(USER_FILE)
+    config = APPS 
+    user_config = USER
 
 
     #Test validité propriété et utilisateur
@@ -83,49 +83,49 @@ def main(argv):
     add_packages_keys(config['PACKAGE_KEY'])
 
     print('*** Liste des section d\'installation ***')
-    print(config.sections())
+    print(config.keys())
     print('')
 
     ### Installation Java
     ## Les jdk spécifié dans le fichier app.properies vont être téléchargés et installés dans /opt
-    if 'JAVA' in config.sections() :
+    if 'JAVA' in config.keys() :
         java_install(config['JAVA'])
 
     ### Installation des dépendances de base
-    if 'BASE' in config.sections() :
+    if 'BASE' in config.keys() :
         base_install(config['BASE'])
 
     ### Installation Python
     ## Python3 ainsi que les dépendances nécéssaires
-    if 'PYTHON' in config.sections() :
+    if 'PYTHON' in config.keys() :
         python_install(config['PYTHON'])
 
     ### Installation PostgreSQL
     ## postgres9 et dépendences dev nécéssaires
-    if 'POSTGRES' in config.sections():
+    if 'POSTGRES' in config.keys():
         postgresql_install(config['POSTGRES'])
 
     ### Installation des outils de développement
 
-    if 'DEV-TOOLS' in config.sections() :
+    if 'DEV-TOOLS' in config.keys() :
         failed_install = install_dev_tools(config['DEV-TOOLS'],user_config['BASE']['os_user'])
 
-    if 'MEDIA' in config.sections():
+    if 'MEDIA' in config.keys():
         retval = install_media(config['MEDIA'])
         if retval :
             failed_install.append('media')
 
-    if 'MOZILLA' in config.sections():
+    if 'MOZILLA' in config.keys():
         retval = install_mozilla(config['MOZILLA'])
         if retval :
             failed_install.append('mozzilla')
 
-    if 'COUCHBASE' in config.sections():
+    if 'COUCHBASE' in config.keys():
         retval = install_couchbase(config['COUCHBASE'])
         if retval :
             failed_install.append('couchbase')
 
-    if 'DRIVERS' in config.sections():
+    if 'DRIVERS' in config.keys():
         retval = install_drivers(config['DRIVERS'])
 
     if failed_install :
