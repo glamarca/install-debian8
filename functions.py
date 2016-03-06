@@ -5,7 +5,7 @@ import subprocess
 from references import install_cmd, add_user_to_grp, PHASES, oracle_jdk_wget_cmd, add_repo_cmd, wget_app_cmd, chown_cmd, \
     execute_as_user, \
     clear_list_repo_file, add_package_key, install_testing_cmd, install_backports_cmd, dpkg_install, TOOLS_FOLDER, \
-    add_pinning_cmd
+    add_pinning_cmd, desktop_entry
 from utils import make_message
 
 
@@ -13,7 +13,7 @@ def sudo_install(os_user):
     ### Installation de sudo
     print('**** Installation de sudo ****')
     try:
-        subprocess.check_call(install_cmd.format('sudo'), shell=True)
+        subprocess.check_call('apt-get install sudo', shell=True)
         print('')
         ## Ajout de l'utilisateur dans sudo
         print('** Ajout de l\'utilisateur dans groupe sudo')
@@ -445,8 +445,8 @@ def install_dev_tools(dev_apps, os_user):
                     pass
                 make_desktop_entry(os_user, app_short_name='sqldeveloper',
                                    app_name='SqlDeveloper',
-                                   exec_path='/opt/sqldeveloper/sqldeveloper.sh',
-                                   icon_path='/opt/sqldeveloper/sqldeveloper/bin/splash.png')
+                                   exec_path='/bin/sh /opt/sqldeveloper/sqldeveloper.sh',
+                                   icon_path='/opt/sqldeveloper/icon.png')
     retval = 0
     if 'visual-paradigm' in dev_apps.keys():
         ## Telechargement de vp
@@ -488,7 +488,7 @@ def install_dev_tools(dev_apps, os_user):
     if 'intellij' in dev_apps.keys():
         ##Télécharger intellij
         intellij_link = dev_apps['intellij']
-        match = re.search('.+\/(ideaIC.+\.gz$)', intellij_link)
+        match = re.search('.+\/(idea.+\.gz$)', intellij_link)
         intellij_version = match.group(1)
         if not intellij_version:
             print('')
@@ -598,7 +598,7 @@ def install_dev_tools(dev_apps, os_user):
         print('** Installation oh-my-zsh')
         try:
             subprocess.check_call(
-                execute_as_user.format(''.join(['/bin/sh -c \"$(curl -fsSL )', omyzsh_link, ' \"']), os_user))
+                execute_as_user.format(''.join(['sh -c \"$(wget ',omyzsh_link, ' -O -)\"']), os_user))
             subprocess.check_call('git clone https://github.com/powerline/fonts.git')
             subprocess.check_call('sudo /bin/sh /opt/fonts/install.sh')
         except Exception as e:
@@ -623,17 +623,7 @@ def make_desktop_entry(os_user, app_short_name, app_name, exec_path, icon_path):
     if retval == 0:
         try:
             app_desktop_path = ''.join([application_desktop_dir, '/', app_short_name, '.desktop'])
-            desktop_content = """
-            [Desktop Entry]
-            Encoding=UTF-8
-            Name={name}
-            Exec={exe}
-            Icon={icon}
-            Categories=Application;Development;IDE
-            Version=1.0
-            Type=Application
-            Terminal=0
-            """.format(name=app_name, exe=exec_path, icon=icon_path)
+            desktop_content = desktop_entry.format(name=app_name, exe=exec_path, icon=icon_path)
             with open(app_desktop_path, "a+") as f:
                 f.write(desktop_content)
         except Exception as e:

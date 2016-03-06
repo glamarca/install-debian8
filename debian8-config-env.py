@@ -12,7 +12,6 @@ import os, sys, subprocess, configparser
 
 # Fichier contenant les applications et dépendances à installer
 import pwd
-import re
 
 from config import APPS, USER
 from functions import sudo_install, java_install, base_install, python_install, postgresql_install, install_dev_tools, \

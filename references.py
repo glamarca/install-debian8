@@ -23,6 +23,19 @@ Package: *
 Pin: release a=testing
 Pin-Priority: -10
 """
+
+desktop_entry="""
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Encoding=UTF-8
+Name={name}
+Exec={exe}
+Icon={icon}
+Categories=Application;Development;IDE
+Version=1.0
+Type=Application
+Terminal=0
+"""
 add_pinning_cmd='echo \'{}\' >> /etc/apt/preferences.d/pinning'.format(picking_prefs)
 
 # Dossier contenant les outils à installer
