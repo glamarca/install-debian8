@@ -3,6 +3,12 @@ USER = {
         # Obligatoire
         'os_user': '',
     },
+    # Si utilisé , la configuration globale de git sera adaptée
+    # 'GIT' : {
+    #     'name' : '',
+    #     'username' : '',
+    #     'email' : '',
+    # },
 }
 
 APPS = {
@@ -18,11 +24,12 @@ APPS = {
         'jpeg-dev': 'libjpeg62-turbo-dev',
         'png': 'libpng12-0',
         'png-dev': 'libpng12-dev',
-        'mave': 'maven',
+        'maven': 'maven',
         'zsh': 'zsh',
         'ttf-ancient-fonts': 'ttf-ancient-fonts',
         'gvfs-bin': 'gvfs-bin',
-        'openssl': 'openssl'
+        'openssl': 'openssl',
+        'openconnect':'openconnect',
     },
     'DEBIAN_REPO': {
         'stable': 'deb http://httpredir.debian.org/debian jessie main contrib non-free',
@@ -50,7 +57,7 @@ APPS = {
         'pip3': 'python3-pip',
     },
     'COUCHBASE': {
-        'couchbase=http': '//packages.couchbase.com/releases/4.0.0/couchbase-server-community_4.0.0-debian7_amd64.deb',
+        'couchbase':'http://packages.couchbase.com/releases/4.0.0/couchbase-server-community_4.0.0-debian7_amd64.deb',
     },
     'DEV-TOOLS': {
         'netbeans': 'http://download.netbeans.org/netbeans/8.1/final/bundles/netbeans-8.1-javaee-linux.sh',
@@ -74,6 +81,7 @@ APPS = {
     'MEDIA': {
         'vlc': 'vlc',
         'goofle-chrome': 'google-chrome-stable',
+        'gimp' : 'gimp',
     },
     'MOZILLA': {
         'firefox': 'firefox',
@@ -82,6 +90,6 @@ APPS = {
     'DRIVERS': {
         # 'intel-graphic':'xserver-xorg-video-intel'
         # 'intel-wifi':'firmware-iwlwifi'
-    }
+    },
 
 }
