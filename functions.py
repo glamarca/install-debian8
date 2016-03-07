@@ -164,6 +164,21 @@ def install_drivers(drivers):
         except Exception as e:
             make_message('error', PHASES['install']['fct'], 'intel-wifi', e)
             ret.append('intel-wifi')
+    if 'nvidia-graphic' in drivers.keys() :
+        cmd = 'aptitude -r -y install linux-headers-$(uname -r|sed \'s,[^-]*-[^-]*-,,\') nvidia-kernel-dkms nvidia-xconfig'
+        try:
+            subprocess.check_call(cmd, shell=True)
+            subprocess.check_call('nvidia-xconfig',shell=True)
+        except Exception as e:
+            make_message('error', PHASES['install']['fct'], 'nvidia-graphic', e)
+            ret.append('nvidia-graphic')
+    if 'ati-graphic' in drivers.keys() :
+        try:
+            subprocess.check_call(install_cmd.format(drivers['ati-graphic']), shell=True)
+        except Exception as e:
+            make_message('error', PHASES['install']['fct'], 'ati-graphic', e)
+            ret.append('ati-graphic')
+
     return ret
 
 

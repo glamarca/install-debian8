@@ -31,6 +31,7 @@ APPS = {
         'openssl': 'openssl',
         'openconnect':'openconnect',
         'libpq-dev' : 'libpq-dev',
+        'firmware' : 'firmware-linux-nonfree',
     },
     'DEBIAN_REPO': {
         'stable': 'deb http://httpredir.debian.org/debian jessie main contrib non-free',
@@ -92,6 +93,8 @@ APPS = {
     'DRIVERS': {
         # 'intel-graphic':'xserver-xorg-video-intel'
         # 'intel-wifi':'firmware-iwlwifi'
+        # 'nvidia-graphic' : 'nvidia-kernel-dkms',
+        # 'ati-graphic' : 'libgl1-mesa-dri xserver-xorg-video-ati',
     },
 
 }

@@ -43,7 +43,7 @@ def init_osis_postgres_db(osis_config) :
         subprocess.check_call(create_user_cmd,shell=True)
         subprocess.check_call(create_db_cmd,shell=True)
     except Exception as e:
-        make_message('error','install','OSIS Folders',e)
+        make_message('error','install','postgres init',e)
         retval = 1
     return retval
 
