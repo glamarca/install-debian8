@@ -52,9 +52,9 @@ APPS = {
         'pip3': 'python3-pip',
     },
     'POSTGRES': {
-        'python3': 'python3-all',
-        'python3-dev': 'python3-all-dev',
-        'pip3': 'python3-pip',
+        'postgres': 'postgresql',
+        'postgres-client': 'postgresql-client',
+        'postgres-dev' : 'postgresql-server-dev-all',
     },
     'COUCHBASE': {
         'couchbase':'http://packages.couchbase.com/releases/4.0.0/couchbase-server-community_4.0.0-debian7_amd64.deb',
