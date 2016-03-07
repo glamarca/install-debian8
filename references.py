@@ -60,4 +60,5 @@ MESSAGES = {
     'phase_title' : '\n*** {} de {} ***\n',
     'section_title' : '\n\n\n**** [ {} ] ****\n',
     'app_lists' : '-- {} --\n',
+    'clone_git_repo' : '\n**** Initialisation des projets git ***'
 }

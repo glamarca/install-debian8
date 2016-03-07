@@ -10,4 +10,6 @@ def make_message(type,*args):
         print (MESSAGES['section_title'].format(args[0]))
     if type == 'app_lists' :
         [print (MESSAGES['app_lists'].format(app)) for app in args[0]]
+    if type == 'clone_git_repo' :
+        print(MESSAGES['clone_git_repo'])
 

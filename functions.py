@@ -632,3 +632,18 @@ def make_desktop_entry(os_user, app_short_name, app_name, exec_path, icon_path):
             print('')
             retval = 1
     return retval
+
+
+def clone_git_repo(dest_path,git_url) :
+    ret = 0
+    mkdir_dest_cmd = ''.join(['mkdir ',dest_path])
+    git_clone_cmd = ''.join(['git clone ',git_url,' ',dest_path])
+    make_message('clone_git_repo')
+    try :
+        subprocess.check_call(mkdir_dest_cmd,shell=True)
+        subprocess.check_call(git_clone_cmd,shell=True)
+    except Exception as e :
+        ret = 1
+        make_message('error', PHASES['install']['fct'], 'CLONE-GIT-REPO', e)
+    return ret
+
