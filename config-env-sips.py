@@ -16,10 +16,10 @@ def clone_sips_repos(config):
         try :
             create_epc_folder = ''.join(['mkdir ',EPC_PATH])
             subprocess.check_call(create_epc_folder,shell=True)
-        except :
+        except Exception as e :
             retval = 1
             failed_install.append('epc folder')
-            make_message('error','install','EPC Folders')
+            make_message('error','install','EPC Folders',e)
         if retval == 0 :
             [clone_git_repo(''.join(EPC_PATH,'/',key),value['repo_url']) for key,value in config['EPC'].items()]
     if 'OSIS' in config.keys() :
@@ -27,12 +27,26 @@ def clone_sips_repos(config):
         try :
             create_osis_folder = ''.join(['mkdir ',OSIS_PATH])
             subprocess.check_call(create_osis_folder,shell=True)
-        except :
+        except Exception as e :
             retval = 1
             failed_install.append('osis folder')
-            make_message('error','install','OSIS Folders')
+            make_message('error','install','OSIS Folders',e)
         if retval == 0 :
             [clone_git_repo(''.join(OSIS_PATH,'/',key),value['repo_url']) for key,value in config['OSIS'].items()]
+
+
+def init_osis_postgres_db(osis_config) :
+    retval = 0
+    try :
+        create_db_cmd = ''.join(['createdb -O ',osis_config['db_user'],' ',osis_config['db_name']])
+        create_user_cmd = ''.join(['createuser ',osis_config['db_user'],' -P'])
+        subprocess.check_call(create_user_cmd,shell=True)
+        subprocess.check_call(create_db_cmd,shell=True)
+    except Exception as e:
+        make_message('error','install','OSIS Folders',e)
+        retval = 1
+    return retval
+
 
 
 def create_sips_folders(config):
@@ -48,8 +62,8 @@ def create_sips_folders(config):
             subprocess.check_call(ucl_java_dev_path,shell=True)
             subprocess.check_call(ucl_python_dev_path,shell=True)
             subprocess.check_call(as_path_cmd,shell=True)
-        except :
-            make_message('error','install','SIPS Folders')
+        except Exception as e :
+            make_message('error','install','SIPS Folders',e)
             exit(1)
 
 def main(argv):

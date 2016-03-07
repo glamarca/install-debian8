@@ -172,6 +172,7 @@ def postgresql_install(postgres_apps):
     make_message('app_lists', postgres_apps.keys())
     try:
         subprocess.check_call(install_cmd.format(' '.join(list(postgres_apps.values()))), shell=True)
+        subprocess.check_call('sudo su - postgres -c "createuser -s $USER"',shell=True)
     except Exception as e:
         make_message('error', PHASES['install']['title'], 'dépendences postgres', e)
 

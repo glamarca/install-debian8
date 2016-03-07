@@ -30,6 +30,7 @@ APPS = {
         'gvfs-bin': 'gvfs-bin',
         'openssl': 'openssl',
         'openconnect':'openconnect',
+        'libpq-dev' : 'libpq-dev',
     },
     'DEBIAN_REPO': {
         'stable': 'deb http://httpredir.debian.org/debian jessie main contrib non-free',
