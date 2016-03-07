@@ -341,6 +341,7 @@ def install_dev_tools(dev_apps, os_user):
                 make_message('phase_title', PHASES['install']['title'], netbeans_version)
                 try:
                     subprocess.check_call('sudo mkdir /opt/netbeans', shell=True)
+                    subprocess.check_call(('export JAVA_HOME=/opt/jdk7'))
                     netbeans_path = ''.join(['/opt/', netbeans_version])
                     netbeans_args = ' --silent --javahome /opt/jdk7 -J-Dnb-base.installation.location=/opt/netbeans'
                     netbean_install_cmd = ''.join(['sudo /bin/sh ', netbeans_path, netbeans_args])

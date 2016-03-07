@@ -82,6 +82,7 @@ APPS = {
         'vlc': 'vlc',
         'goofle-chrome': 'google-chrome-stable',
         'gimp' : 'gimp',
+        'flash-player' : 'flashplugin-nonfree',
     },
     'MOZILLA': {
         'firefox': 'firefox',
