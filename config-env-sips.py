@@ -67,7 +67,9 @@ def create_sips_folders(config):
             exit(1)
 
 def main(argv):
+    create_sips_folders(SIPS_CONFIG)
     clone_sips_repos(SIPS_CONFIG)
+    init_osis_postgres_db(SIPS_CONFIG['OSIS'])
 
 if __name__ == "__main__":
     main(sys.argv[1:])
