@@ -85,11 +85,11 @@ APPS = {
         'goofle-chrome': 'google-chrome-stable',
         'gimp' : 'gimp',
         'flash-player' : 'flashplugin-nonfree',
-    },
-    'MOZILLA': {
-        'firefox': 'firefox',
-        'thunderbird': 'thunderbird',
-    },
+     },
+    # 'MOZILLA': {
+    #     'firefox': 'firefox',
+    #     'thunderbird': 'thunderbird',
+    # },
     'DRIVERS': {
         # 'intel-graphic':'xserver-xorg-video-intel'
         # 'intel-wifi':'firmware-iwlwifi'
