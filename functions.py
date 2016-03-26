@@ -614,10 +614,9 @@ def install_dev_tools(dev_apps, os_user):
         omyzsh_link = dev_apps['omyzsh']
         print('** Installation oh-my-zsh')
         try:
-            subprocess.check_call(
-                execute_as_user.format(''.join(['sh -c \"$(wget ',omyzsh_link, ' -O -)\"']), os_user))
-            subprocess.check_call('git clone https://github.com/powerline/fonts.git')
-            subprocess.check_call('sudo /bin/sh /opt/fonts/install.sh')
+            subprocess.check_call('/bin/sh -c \"$(wget ',omyzsh_link, ' -O -)\"',shell=True)
+            subprocess.check_call('git clone https://github.com/powerline/fonts.git',shell=True)
+            subprocess.check_call('/bin/sh /opt/fonts/install.sh',shell=True)
         except Exception as e:
             failled_install.append('oh-my-zsh')
             make_message('error', PHASES['install']['fct'], 'omyzsh', e)
@@ -663,3 +662,14 @@ def clone_git_repo(dest_path,git_url) :
         ret = 1
         make_message('error', PHASES['install']['fct'], 'CLONE-GIT-REPO', e)
     return ret
+
+def switch_to_user(user):
+    try :
+        subprocess.check_call('su {}'.format(user),shell=True)
+        subprocess.check_call('cd', shell=True)
+        return 0
+    except :
+        print('')
+        print('!! Erreur lors de la selection de l\'utilisateur !!')
+        print('')
+        return 1
