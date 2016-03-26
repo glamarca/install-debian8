@@ -16,7 +16,7 @@ import pwd
 from config import APPS, USER
 from functions import sudo_install, java_install, base_install, python_install, postgresql_install, install_dev_tools, \
     install_media, install_mozilla, add_debian_repo, install_drivers, install_couchbase, add_packages_keys, \
-    configure_git, switch_to_user
+    configure_git
 from references import TOOLS_FOLDER
 
 
@@ -130,14 +130,10 @@ def main(argv):
         retval = install_drivers(config['DRIVERS'])
         failed_install += retval
 
-    ## !!! Pour la suite l'installation se fait en tant qu'utilisateur
-    if not switch_to_user(user_config['BASE']['os_user']) :
-        if 'GIT' in user_config.keys():
-            retval = configure_git(user_config['GIT'], user_config['BASE']['os_user'])
-            if retval:
-                failed_install.append('GIT-CONFIG')
-        if 'DEV_TOOLS_AS_USER' in  config.keys():
-            failed_install += install_dev_tools(config['DEV_TOOLS_AS_USER'], user_config['BASE']['os_user'])
+    if 'GIT' in user_config.keys():
+        retval = configure_git(user_config['GIT'], user_config['BASE']['os_user'])
+        if retval:
+            failed_install.append('GIT-CONFIG')
 
     if failed_install:
         print('**** Installation terminée avec des échecs ****')

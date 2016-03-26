@@ -65,7 +65,7 @@ APPS = {
         'netbeans': 'http://download.netbeans.org/netbeans/8.1/final/bundles/netbeans-8.1-javaee-linux.sh',
 
         #Pycharm-community
-        'pycharm': 'https://download.jetbrains.com/python/pycharm-professional-2016.1.tar.gz',
+        'pycharm': 'https://download.jetbrains.com/python/pycharm-community-2016.1.tar.gz',
 
         # IntelliJ
         # Comunity 15
@@ -78,11 +78,8 @@ APPS = {
         'android-studio': 'https://dl.google.com/dl/android/studio/ide-zips/1.5.1.0/android-studio-ide-141.2456560-linux.zip',
         'atom': 'https://github.com/atom/atom/releases/download/v1.5.3/atom-amd64.deb',
         'sql-developer': 'sqldeveloper-4.1.3.20.78-no-jre.zip',
-        'visual-paradigm': 'http://www.visual-paradigm.com/downloads/vp/Visual_Paradigm_Linux64.sh',
+        'visual-paradigm': 'https://www.visual-paradigm.com/downloads/vp12.2/Visual_Paradigm_Linux64.sh',
         'lein': 'https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein',
-        'ohmyzsh': 'https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh',
-    },
-    'DEV_TOOLS_AS_USER' : {
         'ohmyzsh': 'https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh',
     },
     'MEDIA': {
@@ -91,13 +88,14 @@ APPS = {
         'gimp' : 'gimp',
         'flash-player' : 'flashplugin-nonfree',
      },
+    # En choisissant Firefox et Thunderbird , vous supprimez IceWeasel et IceDove
     # 'MOZILLA': {
     #     'firefox': 'firefox',
     #     'thunderbird': 'thunderbird',
     # },
     'DRIVERS': {
-        # 'intel-graphic':'xserver-xorg-video-intel'
-        # 'intel-wifi':'firmware-iwlwifi'
+        # 'intel-graphic':'xserver-xorg-video-intel',
+        # 'intel-wifi':'firmware-iwlwifi',
         # 'nvidia-graphic' : 'nvidia-kernel-dkms',
         # 'ati-graphic' : 'libgl1-mesa-dri xserver-xorg-video-ati',
         # 'realtek-driver' : 'firmware-realtek',
