@@ -47,8 +47,6 @@ def init_osis_postgres_db(osis_config) :
         retval = 1
     return retval
 
-
-['osis']
 def create_sips_folders(config):
     if 'GLOBAL' in config.keys() :
         dev_path_cmd = ''.join(['mkdir ',DEV_PATH])
