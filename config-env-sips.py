@@ -21,7 +21,7 @@ def clone_sips_repos(config):
             failed_install.append('epc folder')
             make_message('error','install','EPC Folders',e)
         if retval == 0 :
-            [clone_git_repo(''.join(EPC_PATH,'/',key),value['repo_url']) for key,value in config['EPC'].items()]
+            [clone_git_repo(''.join([EPC_PATH,'/',key]),value['repo_url']) for key,value in config['EPC'].items()]
     if 'OSIS' in config.keys() :
         OSIS_PATH = ''.join([config['GLOBAL']['ucl_python_path'],'/OSIS'])
         try :
@@ -32,14 +32,14 @@ def clone_sips_repos(config):
             failed_install.append('osis folder')
             make_message('error','install','OSIS Folders',e)
         if retval == 0 :
-            [clone_git_repo(''.join(OSIS_PATH,'/',key),value['repo_url']) for key,value in config['OSIS'].items()]
+            [clone_git_repo(''.join([OSIS_PATH,'/',key]),value['repo_url']) for key,value in config['OSIS'].items()]
 
 
 def init_osis_postgres_db(osis_config) :
     retval = 0
     try :
-        create_db_cmd = ''.join(['createdb -O ',osis_config['db_user'],' ',osis_config['db_name']])
-        create_user_cmd = ''.join(['createuser ',osis_config['db_user'],' -P'])
+        create_db_cmd = ''.join(['createdb -O ',osis_config['osis']['db_user'],' ',osis_config['osis']['db_name']])
+        create_user_cmd = ''.join(['createuser ',osis_config['osis']['db_user'],' -P'])
         subprocess.check_call(create_user_cmd,shell=True)
         subprocess.check_call(create_db_cmd,shell=True)
     except Exception as e:
@@ -48,7 +48,7 @@ def init_osis_postgres_db(osis_config) :
     return retval
 
 
-
+['osis']
 def create_sips_folders(config):
     if 'GLOBAL' in config.keys() :
         dev_path_cmd = ''.join(['mkdir ',DEV_PATH])
